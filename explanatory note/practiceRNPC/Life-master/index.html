@@ -1,0 +1,262 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+        "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>Life 1970 in javascript by Yan</title>
+    <link href='http://fonts.googleapis.com/css?family=Sofia|Enriqueta' rel='stylesheet' type='text/css'>
+    <script type="text/javascript" src="lib/jquery-1.8.0.min.js"></script>
+    <script type="text/javascript" src="lib/jquery-ui-1.8.23.custom.min.js"></script>
+    <script type="text/javascript" src="lib/calc.js"></script>
+    <script type="text/javascript" src="lib/draw.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            //How fast to change frames in milliseconds
+            LIFE.speed = 1000;
+
+            //Size of the displayed field and initial matrix
+            LIFE.width = 25;
+            LIFE.height = 17;
+
+            LIFE.play = function () {
+                $("#play").hide();
+                $("#pause").show();
+                clearTimeout(LIFE.timeout);
+                LIFE.draw.updateGrid(LIFE.calc.matrixTick().getMatrix());
+                LIFE.timeout = setTimeout(function () {
+                    LIFE.play();
+                }, LIFE.speed);
+            };
+
+            LIFE.pause = function () {
+                clearTimeout(LIFE.timeout);
+                $("#pause").hide();
+                $("#play").show();
+            };
+
+            LIFE.patternHooker = function (pattern) {
+                LIFE.pause();
+                LIFE.draw.updateGrid(LIFE.calc.addPattern(pattern).getMatrix());
+                return false;
+            };
+
+
+            LIFE.manualDraw = function (id) {
+                LIFE.draw.updateGrid(LIFE.calc.changeCell(id).getMatrix());
+            };
+
+            //Initial position of the speed slider control
+            LIFE.defaultSpeedSliderSetting = 2;
+
+            LIFE.setSpeed = function (val) {
+                $("#speed").html("1&nbsp;/&nbsp;" + Math.pow(2, val) + "&nbsp;s");
+                LIFE.speed = 1000 / (Math.pow(2, val));
+            };
+            $("#speedSlider").slider({
+                orientation:"vertical",
+                range:"min",
+                min:1,
+                step:1,
+                max:10,
+                value:LIFE.defaultSpeedSliderSetting,
+                slide:function (event, ui) {
+                    LIFE.setSpeed(ui.value);
+                }});
+            LIFE.setSpeed(LIFE.defaultSpeedSliderSetting);
+
+            LIFE.init = function () {
+                document.getElementById("life").appendChild(
+                        LIFE.draw.drawTable(LIFE.width, LIFE.height).updateGrid(
+                                LIFE.calc.initMatrix(LIFE.width, LIFE.height).getMatrix()
+                        ).getTable()
+                );
+            };
+            LIFE.init();
+
+
+            $("#clear").click(function () {
+                LIFE.calc.clearMatrix();
+                return false;
+            });
+            $("#play").click(function () {
+                LIFE.play();
+                return false;
+            });
+            $("#pause").click(function () {
+                LIFE.pause();
+                return false;
+            });
+
+
+        });
+    </script>
+    <link rel="stylesheet" href="css/flick/jquery-ui-1.8.23.custom.css" type="text/css" media="all"/>
+    <style type="text/css">
+        #play:hover, #pause:hover {
+            font-weight: bolder;
+        }
+
+        body {
+            font-family: 'Sofia', cursive;
+        }
+
+        .description {
+            font-size: 1.5em;
+            margin-left: auto;
+            margin-right: auto;
+            width: 80%;
+        }
+
+        .live, .dead {
+            width: 30px;
+            height: 30px;
+        }
+
+        .live {
+            background-color: #adff2f;
+        }
+
+        .dead {
+            background-color: transparent;
+        }
+
+        .softlink {
+            text-decoration: none;
+            border-bottom: 1px dotted;
+        }
+
+        .dropshadow {
+            padding: 5px;
+            border: solid 0.1em #EFEFEF;
+        }
+
+        a:hover img.dropshadow {
+            border: solid 0.1em #919191;
+            cursor: pointer;
+            /*-moz-box-shadow: 2px 2px 2px #999;*/
+            /*-webkit-box-shadow: 2px 2px 2px #999;*/
+            box-shadow: 0 0 1em black;
+        }
+
+        a {
+            color: #ADFF2F;
+        }
+
+        #speedSlider {
+            margin-left: auto;
+            margin-right: auto;
+            text-align: center;
+        }
+
+        table.container {
+            margin-left: auto;
+            margin-right: auto;
+            border-spacing: 1em;
+        }
+
+        table.life {
+            border-collapse: collapse;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        table.life tr:first-child td {
+            border-top-width: 0;
+        }
+
+        table.life tr:last-child td {
+            border-bottom-width: 0;
+        }
+
+        table.life tr td:first-child {
+            border-left-width: 0;
+        }
+
+        table.life tr td:last-child {
+            border-right-width: 0;
+        }
+
+        table.life td {
+            margin: 0;
+            padding: 0;
+            border-color: black;
+            border-style: dotted;
+            border-width: 0.1em;
+        }
+    </style>
+</head>
+<body>
+<div class="description"><h1>Game of Life 1970</h1>
+
+    <div style="font-family: 'Enriqueta', serif;">
+        <ul>
+            <li>Read the <a href="#" class="softlink"
+                            onclick="$(document.getElementById('rules')).toggleClass('hidden');return false;">rules</a>:
+                <ol class="hidden" id="rules">
+                    <li>Any live cell with fewer than two live neighbours dies, as if caused by under-population.</li>
+                    <li>Any live cell with two or three live neighbours lives on to the next generation.</li>
+                    <li>Any live cell with more than three live neighbours dies, as if by overcrowding.</li>
+                    <li>Any dead cell with exactly three live neighbours becomes a live cell, as if by reproduction.
+                    </li>
+                </ol>
+            </li>
+            <li>Select any of the presets below and click «Play».</li>
+            <li>Adjust speed slider on the left.</li>
+            <li>Draw your own matrix by clicking on the cells of the table.</li>
+        </ul>
+    </div>
+
+</div>
+<div align="center"><a id="pattern1" onclick="return LIFE.patternHooker([[1,1,1]])"><img src="img/1.png"
+                                                                                         class="dropshadow"></a>
+    <a id="pattern2" onclick="return LIFE.patternHooker([[0,1,1,1],[1,1,1,0]])"><img src="img/2.png"
+                                                                                     class="dropshadow"></a>
+    <a id="pattern5" onclick="return LIFE.patternHooker([[0,0,1,1],[0,0,1,1],[1,1,0,0],[1,1,0,0]])"><img
+            src="img/5.png" class="dropshadow"></a>
+
+    <a id="pattern4" onclick="return LIFE.patternHooker([[0,1,0],[0,0,1],[1,1,1]])"><img src="img/4.png"
+                                                                                         class="dropshadow"></a>
+    <a id="pattern3" onclick="return LIFE.patternHooker([
+    [0, 1, 1, 0, 0],
+    [1, 1, 1, 1, 0],
+    [1, 1, 0, 1, 1],
+    [0, 0, 1, 1, 0]
+])"><img src="img/3.png" class="dropshadow"></a>
+    <a id="pattern6" onclick="return LIFE.patternHooker([
+    [0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0],
+    [0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0],
+    [1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 1],
+    [1, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 1],
+    [0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0],
+    [0, 0, 1, 1, 1, 0, 0, 0, 1, 1, 1, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 1, 1, 1, 0, 0, 0, 1, 1, 1, 0, 0],
+    [0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0],
+    [1, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 1],
+    [1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 1],
+    [0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0],
+    [0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0]
+])"><img src="img/6.png" class="dropshadow"></a></div>
+<div align="center" style="font-size: 5em"><a href="#" id="play">Play</a>
+    <a href="#" id="pause" class="hidden">Pause</a></div>
+<table class="container">
+    <tr>
+        <td>
+
+            <div align="center">Speed:</div>
+            <div id="speedSlider" style="height: 400px;"></div>
+            <div align="center"><a href="#" id="clear" class="hidden">Clear</a></div>
+            <p style="width: 6em; text-align: center;"><label id="speed"></label></p>
+        </td>
+        <td>
+
+            <div id="life"></div>
+        </td>
+    </tr>
+</table>
+<div style="height: 5em"></div>
+
+</body>
+</html>
